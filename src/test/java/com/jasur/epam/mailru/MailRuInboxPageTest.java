@@ -2,40 +2,82 @@ package com.jasur.epam.mailru;
 
 import com.jasur.epam.core.BaseSeleniumTest;
 import com.jasur.epam.core.Letter;
+import com.jasur.epam.core.TestValue;
+import com.jasur.epam.yandex.YandexMailInboxPage;
+import com.jasur.epam.yandex.YandexMailLoginPage;
 import org.junit.Assert;
 import org.junit.Test;
+import org.openqa.selenium.WebElement;
 
 public class MailRuInboxPageTest extends BaseSeleniumTest {
-    private static final String USER_EMAIL = "t3st.epam@mail.ru";
-    private static final String USER_PASSWORD = "b2)Q#9&Ly";
-    private static final String LETTER_EMAIL = "t3stepam@yandex.ru";
-    private static final String LETTER_SUBJECT = "Test";
-    private static final String LETTER_MESSAGE = "Hello, test user yandex mail!";
+    private MailRuInboxPage mailRuInboxPage;
 
+    public void login() {
+        MailRuLoginPage loginPage = new MailRuLoginPage(
+                TestValue.MAIL_RU_USER_EMAIL,
+                TestValue.MAIL_RU_USER_PASSWORD
+        );
+        mailRuInboxPage = loginPage.login();
+    }
     @Test
     public void testSuccessfulLetterSent() {
-        MailRuLoginPage loginPage = new MailRuLoginPage(USER_EMAIL, USER_PASSWORD);
-        MailRuInboxPage mailRuInboxPage = loginPage.login();
+        login();
         Assert.assertTrue(mailRuInboxPage.isSuccessfulLetter(
-                new Letter(LETTER_EMAIL, LETTER_SUBJECT, LETTER_MESSAGE, USER_EMAIL)
+                new Letter(
+                        TestValue.YANDEX_USER_EMAIL,
+                        TestValue.MAIL_RU_LETTER_SUBJECT,
+                        TestValue.MAIL_RU_LETTER_MESSAGE,
+                        TestValue.MAIL_RU_USER_EMAIL
+                )
         ));
     }
 
     @Test
     public void testUnableToSendLetterWithoutReceiver() {
-        MailRuLoginPage loginPage = new MailRuLoginPage(USER_EMAIL, USER_PASSWORD);
-        MailRuInboxPage mailRuInboxPage = loginPage.login();
+        login();
         Assert.assertTrue(mailRuInboxPage.isLetterWithoutReceiver(
-                new Letter("", LETTER_SUBJECT, LETTER_MESSAGE, USER_EMAIL)
+                new Letter(
+                        "",
+                        TestValue.MAIL_RU_LETTER_SUBJECT,
+                        TestValue.MAIL_RU_LETTER_MESSAGE,
+                        TestValue.MAIL_RU_USER_EMAIL
+                )
         ));
     }
 
     @Test
     public void testUnableToSendLetterWithoutMessage() {
-        MailRuLoginPage loginPage = new MailRuLoginPage(USER_EMAIL, USER_PASSWORD);
-        MailRuInboxPage mailRuInboxPage = loginPage.login();
+        login();
         Assert.assertTrue(mailRuInboxPage.isLetterWithoutMessage(
-                new Letter(LETTER_EMAIL, LETTER_SUBJECT, "", USER_EMAIL)
+                new Letter(
+                        TestValue.YANDEX_USER_EMAIL,
+                        TestValue.MAIL_RU_LETTER_SUBJECT,
+                        "",
+                        TestValue.MAIL_RU_USER_EMAIL
+                )
         ));
+    }
+
+    @Test
+    public void testReceivingLetter() {
+        Letter sentLetter =  new Letter(
+                TestValue.MAIL_RU_USER_EMAIL,
+                TestValue.YANDEX_LETTER_SUBJECT,
+                TestValue.YANDEX_LETTER_MESSAGE,
+                TestValue.YANDEX_USER_EMAIL
+        );
+        YandexMailLoginPage yandexMailLoginPage = new YandexMailLoginPage(
+                TestValue.YANDEX_USER_LOGIN,
+                TestValue.YANDEX_USER_PASSWORD
+        );
+        YandexMailInboxPage yandexMailInboxPage = yandexMailLoginPage.login();
+        yandexMailInboxPage.writeLetter(sentLetter);
+        tearDown();
+        setUp();
+        login();
+        WebElement receivedLetterElement = mailRuInboxPage.receiveLetter(sentLetter);
+        Assert.assertNotNull(receivedLetterElement);
+        Letter readLetter = mailRuInboxPage.readLetter(receivedLetterElement);
+        Assert.assertEquals(sentLetter, readLetter);
     }
 }

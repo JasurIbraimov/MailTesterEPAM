@@ -1,11 +1,14 @@
-package com.jasur.epam.gmail;
+package com.jasur.epam.yandex;
 
 import com.jasur.epam.core.BaseSeleniumPage;
 import com.jasur.epam.core.Letter;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 import java.util.ArrayList;
 
 public class YandexMailInboxPage extends BaseSeleniumPage {
@@ -13,7 +16,8 @@ public class YandexMailInboxPage extends BaseSeleniumPage {
     private WebElement writeLetterLink;
     @FindBy(className = "user-account__name")
     private WebElement userAccountNameElement;
-
+    @FindBy(className = "qa-LeftColumn-SyncButton")
+    private WebElement checkNewLettersButton;
     public YandexMailInboxPage(){
         PageFactory.initElements(driver, this);
     }
@@ -33,8 +37,18 @@ public class YandexMailInboxPage extends BaseSeleniumPage {
         WebElement sendButton = driver.findElement(By.cssSelector(".ComposeSendButton button"));
         sendButton.click();
     }
-    public WebElement receiveLetter(Letter sentLetter) {
-        WebElement unreadLetter = driver.findElement(By.className(".mail-MessageSnippet.is-unread"));
+    public WebElement receiveLetter(Letter sentLetter)  {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        checkNewLettersButton.click();
+        WebElement unreadLetter = null;
+        while(unreadLetter == null) {
+            try {
+                wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".mail-MessageSnippet.is-unread")));
+                unreadLetter = driver.findElement(By.cssSelector(".mail-MessageSnippet.is-unread"));
+            } catch (TimeoutException e) {
+                checkNewLettersButton.click();
+            }
+        }
         WebElement letterFromTextElement = unreadLetter.findElement(By.className("mail-MessageSnippet-FromText"));
         WebElement letterSubjectElement = unreadLetter.findElement(By.cssSelector(".mail-MessageSnippet-Item_subject span"));
 

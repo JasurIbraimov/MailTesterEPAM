@@ -3,9 +3,15 @@ package com.jasur.epam.mailru;
 import com.jasur.epam.core.BaseSeleniumPage;
 import com.jasur.epam.core.Letter;
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
+import java.util.ArrayList;
 
 public class MailRuInboxPage extends BaseSeleniumPage {
     @FindBy(xpath = "//a[@data-title-shortcut=\"N\"]")
@@ -31,35 +37,47 @@ public class MailRuInboxPage extends BaseSeleniumPage {
         sendButton.click();
 
     }
-//    public WebElement receiveLetter(Letter sentLetter) {
-//        WebElement unreadLetter = driver.findElement(By.className(".mail-MessageSnippet.is-unread"));
-//        WebElement letterFromTextElement = unreadLetter.findElement(By.className("mail-MessageSnippet-FromText"));
-//        WebElement letterSubjectElement = unreadLetter.findElement(By.cssSelector(".mail-MessageSnippet-Item_subject span"));
-//
-//        if (letterFromTextElement.getAttribute("title").equals(sentLetter.sender())
-//                && letterSubjectElement.getText().equals(sentLetter.subject())) {
-//            return unreadLetter;
-//        }
-//        return null;
-//    }
-//
-//    public Letter readLetter(WebElement receivedLetter) {
-//        receivedLetter.click();
-//        String receivedLetterRecipient = userAccountNameElement.getText() + "@yandex.ru";
-//        String receivedLetterSubjectText = driver.findElement(By.className("Title_subject_tyZv5")).getText();
-//        String receivedLetterSenderEmail = driver.findElement(By.className("Sender_email_iWFMG")).getText();
-//        ArrayList<WebElement> receivedLetterBodyElements = (ArrayList<WebElement>) driver.findElements(By.cssSelector(".MessageBody_body_pmf3j > div"));
-//        StringBuilder receivedLetterBodyMessage = new StringBuilder();
-//        for (int i = 0; i < receivedLetterBodyElements.size() - 2; i++) {
-//            receivedLetterBodyMessage.append(receivedLetterBodyElements.get(i).getText());
-//        }
-//        return new Letter(
-//                receivedLetterRecipient,
-//                receivedLetterSubjectText,
-//                receivedLetterBodyMessage.toString(),
-//                receivedLetterSenderEmail
-//        );
-//    }
+    public WebElement receiveLetter(Letter sentLetter) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        By letterXpath = By.xpath("//div[contains(@class, 'llc__avatar_unread')]/parent::a");
+        WebElement unreadLetter = null;
+        while(unreadLetter == null) {
+            try {
+                wait.until(ExpectedConditions.elementToBeClickable(letterXpath));
+                unreadLetter = driver.findElement(letterXpath);
+            } catch (TimeoutException e) {
+                driver.navigate().refresh();
+            }
+        }
+        WebElement senderElement = unreadLetter.findElement(By.cssSelector(".llc__item_correspondent span"));
+        WebElement letterSubjectElement = unreadLetter.findElement(By.cssSelector(".llc__subject span"));
+        String senderElementTitle = senderElement.getAttribute("title");
+        String senderEmail = senderElementTitle.substring(senderElementTitle.indexOf('<') + 1, senderElementTitle.indexOf('>'));
+        if (senderEmail.equals(sentLetter.sender())
+                && letterSubjectElement.getText().equals(sentLetter.subject())) {
+            return unreadLetter;
+        }
+        return null;
+    }
+
+    public Letter readLetter(WebElement receivedLetter) {
+        receivedLetter.click();
+        String receivedLetterRecipient = driver.findElement(By.cssSelector(".letter__recipients .letter-contact")).getAttribute("title");
+        String receivedLetterSubjectText = driver.findElement(By.className("thread-subject")).getText();
+        String receivedLetterSenderEmail = driver.findElement(By.cssSelector(".letter__author span")).getAttribute("title");
+        WebElement receivedBodyContainer = driver.findElement(By.xpath("//*[starts-with(@id, 'style_') ]/div"));
+        ArrayList<WebElement> receivedLetterBodyElements = (ArrayList<WebElement>) receivedBodyContainer.findElements(By.tagName("div"));
+        StringBuilder receivedLetterBodyMessage = new StringBuilder();
+        for (WebElement receivedLetterBodyElement : receivedLetterBodyElements) {
+            receivedLetterBodyMessage.append(receivedLetterBodyElement.getText());
+        }
+        return new Letter(
+                receivedLetterRecipient,
+                receivedLetterSubjectText,
+                receivedLetterBodyMessage.toString(),
+                receivedLetterSenderEmail
+        );
+    }
     public boolean isSuccessfulLetter(Letter letter) {
         writeLetter(letter);
         if (elementExists(By.xpath("//div[@__mediators=\"layout-manager\"]"))) {

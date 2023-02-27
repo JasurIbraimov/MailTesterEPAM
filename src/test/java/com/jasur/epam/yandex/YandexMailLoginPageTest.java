@@ -1,4 +1,4 @@
-package com.jasur.epam.gmail;
+package com.jasur.epam.yandex;
 
 import com.jasur.epam.core.BaseSeleniumTest;
 import org.junit.Assert;
