@@ -6,7 +6,6 @@ import com.jasur.epam.core.TestValue;
 import com.jasur.epam.mailru.MailRuInboxPage;
 import com.jasur.epam.mailru.MailRuLoginPage;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.WebElement;
 

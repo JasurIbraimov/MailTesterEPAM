@@ -8,7 +8,6 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
 public class MailRuLoginPage extends BaseSeleniumPage {
-    private final String MAIL_RU_LOGIN_URL = "https://account.mail.ru/login/";
     private final String userEmail;
     private final String userPassword;
     @FindBy(name = "username")
@@ -20,7 +19,7 @@ public class MailRuLoginPage extends BaseSeleniumPage {
     public MailRuLoginPage(String userEmail, String userPassword) {
         this.userEmail = userEmail;
         this.userPassword = userPassword;
-        driver.get(MAIL_RU_LOGIN_URL);
+        driver.get("https://account.mail.ru/login/");
         PageFactory.initElements(driver, this);
     }
 

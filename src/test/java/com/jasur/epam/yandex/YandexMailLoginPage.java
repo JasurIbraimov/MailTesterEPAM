@@ -8,7 +8,6 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
 public class YandexMailLoginPage extends BaseSeleniumPage {
-    private final String YANDEX_MAIL_LOGIN_URL = "https://passport.yandex.ru/auth?retpath=https%3A%2F%2Fmail.yandex.ru";
     private final String userEmail;
     private final String userPassword;
 
@@ -18,7 +17,7 @@ public class YandexMailLoginPage extends BaseSeleniumPage {
     public YandexMailLoginPage(String userEmail, String userPassword) {
         this.userEmail = userEmail;
         this.userPassword = userPassword;
-        driver.get(YANDEX_MAIL_LOGIN_URL);
+        driver.get("https://passport.yandex.ru/auth?retpath=https%3A%2F%2Fmail.yandex.ru");
         PageFactory.initElements(driver, this);
     }
 
